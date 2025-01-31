@@ -102,3 +102,28 @@ Any user can open a PR to contribute to PYSKL. The PR will be reviewed before be
 ## Contact
 
 For any questions, feel free to contact: dhd.efz@gmail.com
+
+## Eric's Notes
+
+### FP16
+Add fp16=True in any config
+
+### Posec3d
+https://github.com/kennymckormick/pyskl/blob/main/configs/posec3d/README.md
+
+Training
+
+bash tools/dist_train.sh configs/posec3d/slowonly_r50_ntu60_xsub/joint.py 2 --validate --test-last --test-best
+
+Comment: ETA too long
+
+### CTRGCN
+https://github.com/kennymckormick/pyskl/blob/main/configs/ctrgcn/README.md
+
+Training
+
+  bash tools/dist_train.sh configs/ctrgcn/ctrgcn_pyskl_ntu60_xsub_hrnet/j.py 2 --validate --test-last --test-best
+
+Testing
+
+bash tools/dist_test.sh configs/ctrgcn/ctrgcn_pyskl_ntu60_xsub_hrnet/j.py work_dirs/ctrgcn/ctrgcn_pyskl_ntu60_xsub_hrnet/j/best_top1_acc_epoch_15.pth 2 --eval top_k_accuracy --out result.pkl

@@ -7,12 +7,11 @@ import torch
 import torch.distributed as dist
 from mmcv.engine import multi_gpu_test
 from mmcv.parallel import MMDistributedDataParallel
-from mmcv.runner import DistSamplerSeedHook, EpochBasedRunner, OptimizerHook, build_optimizer, get_dist_info
+from mmcv.runner import DistSamplerSeedHook, EpochBasedRunner, OptimizerHook, build_optimizer, get_dist_info, Fp16OptimizerHook
 
 from ..core import DistEvalHook
 from ..datasets import build_dataloader, build_dataset
 from ..utils import cache_checkpoint, get_root_logger
-
 
 def init_random_seed(seed=None, device='cuda'):
     """Initialize random seed.
@@ -109,10 +108,15 @@ def train_model(model,
     # an ugly workaround to make .log and .log.json filenames the same
     runner.timestamp = timestamp
 
-    if 'type' not in cfg.optimizer_config:
-        optimizer_config = OptimizerHook(**cfg.optimizer_config)
+    fp16 = cfg.get('fp16', False)
+    if fp16:
+        logger.info("Using fp16")
+        optimizer_config = Fp16OptimizerHook(**cfg.optimizer_config)
     else:
-        optimizer_config = cfg.optimizer_config
+        if 'type' not in cfg.optimizer_config:
+            optimizer_config = OptimizerHook(**cfg.optimizer_config)
+        else:
+            optimizer_config = cfg.optimizer_config
 
     # register hooks
     runner.register_training_hooks(cfg.lr_config, optimizer_config,
