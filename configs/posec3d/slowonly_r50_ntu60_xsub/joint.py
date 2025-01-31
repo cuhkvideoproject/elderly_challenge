@@ -57,7 +57,7 @@ test_pipeline = [
     dict(type='ToTensor', keys=['imgs'])
 ]
 data = dict(
-    videos_per_gpu=32,
+    videos_per_gpu=32, #original: 32, 8 gpus
     workers_per_gpu=4,
     test_dataloader=dict(videos_per_gpu=1),
     train=dict(
@@ -67,7 +67,7 @@ data = dict(
     val=dict(type=dataset_type, ann_file=ann_file, split='xsub_val', pipeline=val_pipeline),
     test=dict(type=dataset_type, ann_file=ann_file, split='xsub_val', pipeline=test_pipeline))
 # optimizer
-optimizer = dict(type='SGD', lr=0.4, momentum=0.9, weight_decay=0.0003)  # this lr is used for 8 gpus
+optimizer = dict(type='SGD', lr=0.4/8*2, momentum=0.9, weight_decay=0.0003)  # oriignal lr: 0.4, for 32 videos_per_gpu, with 8 gpus
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 # learning policy
 lr_config = dict(policy='CosineAnnealing', by_epoch=False, min_lr=0)
@@ -77,3 +77,5 @@ evaluation = dict(interval=1, metrics=['top_k_accuracy', 'mean_class_accuracy'],
 log_config = dict(interval=20, hooks=[dict(type='TextLoggerHook')])
 log_level = 'INFO'
 work_dir = './work_dirs/posec3d/slowonly_r50_ntu60_xsub/joint'
+# fp16
+fp16 = True
