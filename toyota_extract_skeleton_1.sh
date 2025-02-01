@@ -1,18 +1,17 @@
 #!/bin/bash
 
 # Define variables for file paths
-VIDEOS_DIRECTORY="../datasets/elderlychallenge_evaluation_dataset/eval_FO_ids"
-VIDEOS_LIST_DIR="examples/extract_skeleton/eval_video_lists"
-ANNOS_DIR="examples/extract_skeleton/eval_annos"  # Output directory for annotations
+# VIDEOS_DIRECTORY="../datasets/toyota_smarthome/mp4"
+VIDEOS_LIST_DIR="examples/extract_skeleton/toyotasmarthome_video_lists_1"
+ANNOS_DIR="examples/extract_skeleton/toyotasmarthome_annos"  # Output directory for annotations
 NUM_GPUS=3  # Set the number of GPUs
 
 # Ensure the output directory exists
-rm -rf "$VIDEOS_LIST_DIR"
 mkdir -p "$VIDEOS_LIST_DIR"
 mkdir -p "$ANNOS_DIR"
 
 # Run the Python script to generate video lists
-python3 examples/extract_skeleton/generate_list.py --input-folder "$VIDEOS_DIRECTORY" --output-dir "$VIDEOS_LIST_DIR"
+# python3 examples/extract_skeleton/generate_list.py --input-folder "$VIDEOS_DIRECTORY" --output-dir "$VIDEOS_LIST_DIR"
 
 # Loop through each video list file in the directory
 for VIDEO_LIST in "$VIDEOS_LIST_DIR"/*; do
