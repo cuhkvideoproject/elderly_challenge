@@ -126,12 +126,12 @@ def main():
     lines = mrlines(args.video_list)
     lines = [x.split() for x in lines]
 
-    # * We set 'frame_dir' as the base name (w/o. suffix) of each video
+    # * We set 'frame_dir' as the file name of each video
     assert len(lines[0]) in [1, 2]
     if len(lines[0]) == 1:
-        annos = [dict(frame_dir=osp.basename(x[0]).split('.')[0], filename=x[0]) for x in lines]
+        annos = [dict(frame_dir=osp.basename(x[0]), filename=x[0]) for x in lines]
     else:
-        annos = [dict(frame_dir=osp.basename(x[0]).split('.')[0], filename=x[0], label=int(x[1])) for x in lines]
+        annos = [dict(frame_dir=osp.basename(x[0]), filename=x[0], label=int(x[1])) for x in lines]
 
     if args.non_dist:
         my_part = annos
