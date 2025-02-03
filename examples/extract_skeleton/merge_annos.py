@@ -50,7 +50,7 @@ def process_pkl_files(input_directory, output_file):
         "Pour": "Others",
         "Readbook": "Leisure",
         "Sitdown": "Locomotion",
-        "Takepills": "Others",
+        "Takepills": "Hygiene",
         "Uselaptop": "Leisure",
         "Usetablet": "Leisure",
         "Usetelephone": "Communication",
