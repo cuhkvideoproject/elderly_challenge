@@ -8,6 +8,10 @@ import argparse
 START_LABEL = 0  # Change this value as needed
 LINES_PER_FILE = 250  # Maximum lines per output file
 
+# filter contains action not required, they will be dropped
+# filters = []
+filters = ['A002','A014','A015','A017','A018','A019','A028','A029','A031','A038','A040','A044','A048','A053']
+
 def generate_video_list(input_folder, output_dir):
     # Ensure the input directory exists
     if not os.path.isdir(input_folder):
@@ -27,7 +31,13 @@ def generate_video_list(input_folder, output_dir):
     labeled_paths = []
     for f in video_files:
         relative_path = os.path.relpath(os.path.join(input_folder, f), start=os.getcwd())
-        labeled_paths.append(f"{relative_path} {START_LABEL}")
+        action_code = relative_path.split('/')[-1][:4]
+        filtered = action_code in filters
+        if not filtered:
+            labeled_paths.append(f"{relative_path} {START_LABEL}")
+        print(f'{relative_path} action_code: {action_code} filtered: {filtered}')
+
+    print(f'Len before filter: {len(video_files)} Len after filter: {len(labeled_paths)}')
 
     # Split into multiple files
     file_count = 0
@@ -38,6 +48,8 @@ def generate_video_list(input_folder, output_dir):
             file.write("\n".join(chunk) + "\n")
         print(f"File '{chunk_filename}' has been created successfully.")
         file_count += 1
+
+    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate a list of relative video file paths with a fixed label, splitting output into multiple files.")
