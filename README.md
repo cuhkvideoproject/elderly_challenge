@@ -59,8 +59,8 @@ dataset_path="data/elderlychallenge/eval_hrnet.pkl"  # keep it for eval dataset
 ```
 
 ## Ensemble
-We also provide a script ``examples/generate_prediction_csv/gen_pred_ensemble.py`` for ensembling predictions from different models. For example:
-
+We also provide a script ``examples/generate_prediction_csv/gen_pred_ensemble.py`` for ensembling predictions from different models.
+Update variables `result_files` (pkl files for ensembling) and `dataset_path`, then execute:
 ```
-python3 examples/generate_prediction_csv/gen_pred_ensemble.py --result_path work_dirs/ctrgcn/ctrgcn_pyskl_eval_hrnet/j/test_result_imbalance_etrifull_toyota_hrnet_relabel.pkl --result2_path work_dirs/msg3d/msg3d_pyskl_etrifull_toyota_hrnet/eval_b/test_result_etrifull_toyota_hrnet_relabel.pkl --dataset_path data/elderlychallenge/eval_hrnet.pkl
+python3 examples/generate_prediction_csv/gen_pred_ensemble.py
 ```
