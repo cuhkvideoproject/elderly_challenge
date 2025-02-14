@@ -4,6 +4,7 @@ import os
 from mmcv import load, dump
 from collections import Counter
 from sklearn.model_selection import train_test_split
+import numpy as np
 
 def process_pkl_files(input_directory, output_file):
     """Loads all .pkl files in the specified input directory, processes them, and saves the output."""
@@ -68,37 +69,115 @@ def process_pkl_files(input_directory, output_file):
         "Others": 6
     }
 
-    for i in range(len(annotations)):
-        if '_' in annotations[i]['frame_dir']:
-            prefix = annotations[i]['frame_dir'].split('_')[0]
-        else:
-            prefix = annotations[i]['frame_dir']
+    groupcam_labels = []
+    person_labels = []
 
-        text_label = toyota_label_mapping[prefix]
+    for i in range(len(annotations)):
+        fd = annotations[i]['frame_dir'][:-4]
+        activity_full, person, r, v, camera = fd.split('_')
+        print('fd', fd)
+        
+
+        if '.' in activity_full:
+            activity = activity_full.split('.')[0]
+        else:
+            activity = activity_full
+
+        print('activity_full, activity, person, r, v, camera', activity_full, activity, person, r, v, camera)
+
+        text_label = toyota_label_mapping[activity]
         annotations[i]['label'] = label_number_mapping[text_label]
 
     # Filter 'Others' category
     annotations = [a for a in annotations if a['label']!=6]
 
-    # Assign random frame_dir
     for i in range(len(annotations)):
-        annotations[i]['frame_dir'] = str(i)
+        fd = annotations[i]['frame_dir'][:-4]
+        activity_full, person, r, v, camera = fd.split('_')
 
+        if '.' in activity_full:
+            activity = activity_full.split('.')[0]
+        else:
+            activity = activity_full
+
+        # groupcam_labels.append(f'{activity}_{r}_{v}_{camera}')
+        groupcam_labels.append(f'{activity}_{camera}')
+        person_labels.append(f'{activity}_{person}')
+        
     # Train test split by label
     frame_dirs = [d["frame_dir"] for d in annotations]
     labels = [d["label"] for d in annotations]
 
     # Stratified train-test split
-    train_dirs, test_dirs = train_test_split(frame_dirs, test_size=0.2, random_state=42, stratify=labels)
+    train_label_split_dirs, test_label_split_dirs = train_test_split(frame_dirs, test_size=0.2, random_state=42, stratify=labels)
+
+    def count_occurrences(string_list):
+        string_counter = Counter(string_list)
+
+        # Sort alphabetically and print results
+        for string in sorted(string_counter.keys()):
+            print(f'"{string}": {string_counter[string]}')
+
+    count_occurrences(labels)
+
+    count_occurrences(groupcam_labels)
+
+    count_occurrences(person_labels)
+
+    def train_test_split_safe(frame_dirs, test_size=0.2, random_state=42, stratify=None):
+        """Performs stratified train-test split but ensures that classes with only one sample go to the training set."""
+        frame_dirs = np.array(frame_dirs)
+
+        if stratify is None:
+            return train_test_split(frame_dirs, test_size=test_size, random_state=random_state)
+
+        stratify = np.array(stratify)
+        
+        # Count occurrences of each class
+        label_counts = Counter(stratify)
+        
+        # Find classes with only one sample
+        single_sample_classes = {label for label, count in label_counts.items() if count == 1}
+        
+        # Indices of samples with only one occurrence
+        single_sample_indices = [i for i, label in enumerate(stratify) if label in single_sample_classes]
+        multiple_sample_indices = [i for i in range(len(stratify)) if i not in single_sample_indices]
+
+        # Perform stratified split only on classes with multiple samples
+        if multiple_sample_indices:
+            train_split_dirs, test_split_dirs = train_test_split(
+                frame_dirs[multiple_sample_indices],
+                test_size=test_size,
+                random_state=random_state,
+                stratify=stratify[multiple_sample_indices]  # Stratify only valid labels
+            )
+        else:
+            # If all classes have a single sample, put everything into training
+            train_split_dirs = frame_dirs
+            test_split_dirs = np.array([])  # Empty test set
+
+        # Add back single-sample classes to the training set
+        train_split_dirs = np.concatenate([train_split_dirs, frame_dirs[single_sample_indices]])
+
+        return train_split_dirs, test_split_dirs
+
+    train_groupcamlabel_split_dirs, test_groupcamlabel_split_dirs = train_test_split_safe(frame_dirs, test_size=0.1, random_state=42, stratify=groupcam_labels)
+    train_personlabel_split_dirs, test_personlabel_split_dirs = train_test_split_safe(frame_dirs, test_size=0.1, random_state=42, stratify=person_labels)
 
     split = {
-        'train': train_dirs,
-        'test': test_dirs
-    }
+        'all': frame_dirs,
+        'train_label_split': train_label_split_dirs,
+        'test_label_split': test_label_split_dirs,
+        'train_groupcamlabel_split': train_groupcamlabel_split_dirs,
+        'test_groupcamlabel_split': test_groupcamlabel_split_dirs,
+        'train_personlabel_split': train_personlabel_split_dirs,
+        'test_personlabel_split': test_personlabel_split_dirs
+    }   
 
-    print(len(train_dirs), len(test_dirs))
-    print(train_dirs[:10])
-    print(test_dirs[:10])
+    print("len(split['all'])", len(split['all']))
+    print("len(split['train_label_split']), len(split['test_label_split'])", len(split['train_label_split']), len(split['test_label_split']))
+    print("len(split['train_groupcamlabel_split']), len(split['test_groupcamlabel_split'])", len(split['train_groupcamlabel_split']), len(split['test_groupcamlabel_split']))
+    print("len(split['train_personlabel_split']), len(split['test_personlabel_split'])", len(split['train_personlabel_split']), len(split['test_personlabel_split']))
 
     # Save final merged data
     dump(dict(split=split, annotations=annotations), output_file)

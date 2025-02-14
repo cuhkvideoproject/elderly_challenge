@@ -135,18 +135,54 @@ def process_pkl_files(input_directory, output_file):
     labels = [d["label"] for d in annotations]
 
     # Stratified train-test split
-    train_dirs, test_dirs = train_test_split(frame_dirs, test_size=0.2, random_state=42, stratify=labels)
+    train_label_split_dirs, test_label_split_dirs = train_test_split(frame_dirs, test_size=0.2, random_state=42, stratify=labels)
+    train_subj_split_dirs = []
+    test_subj_split_dirs = []
 
-    split = {
-        'train': train_dirs,
-        'test': test_dirs
-    }
+    groupcam_labels = []
+    person_labels = []
 
-    print(len(train_dirs), len(test_dirs))
-    print(train_dirs[:10])
-    print(test_dirs[:10])
+    for a in annotations:
+        fd = a['frame_dir']
+        fd = fd.split('.')[0]
+        activity, person, group, camera = fd.split('_')
+        activity = a['label']
+        groupcam_labels.append(f'{activity}_{group}_{camera}')
+        person_labels.append(f'{activity}_{person}')
+        person = int(person[1:])
+        if person%3 == 0:
+            test_subj_split_dirs.append(fd)
+        else:
+            train_subj_split_dirs.append(fd)
+        # if person == 'P001':
+        #     print(fd, activity, person, group, camera)
 
     count_occurrences(labels)
+
+    count_occurrences(groupcam_labels)
+
+    count_occurrences(person_labels)
+
+    train_groupcamlabel_split_dirs, test_groupcamlabel_split_dirs = train_test_split(frame_dirs, test_size=0.1, random_state=42, stratify=groupcam_labels)
+    train_personlabel_split_dirs, test_personlabel_split_dirs = train_test_split(frame_dirs, test_size=0.1, random_state=42, stratify=person_labels)
+
+    split = {
+        'all': frame_dirs,
+        'train_label_split': train_label_split_dirs,
+        'test_label_split': test_label_split_dirs,
+        'train_groupcamlabel_split': train_groupcamlabel_split_dirs,
+        'test_groupcamlabel_split': test_groupcamlabel_split_dirs,
+        'train_subj_split': train_subj_split_dirs,
+        'test_subj_split': test_subj_split_dirs,
+        'train_personlabel_split': train_personlabel_split_dirs,
+        'test_personlabel_split': test_personlabel_split_dirs
+    }
+
+    print("len(split['all'])", len(split['all']))
+    print("len(split['train_label_split']), len(split['test_label_split'])", len(split['train_label_split']), len(split['test_label_split']))
+    print("len(split['train_groupcamlabel_split']), len(split['test_groupcamlabel_split'])", len(split['train_groupcamlabel_split']), len(split['test_groupcamlabel_split']))
+    print("len(split['train_subj_split']), len(split['test_subj_split'])", len(split['train_subj_split']), len(split['test_subj_split']))
+    print("len(split['train_personlabel_split']), len(split['test_personlabel_split'])", len(split['train_personlabel_split']), len(split['test_personlabel_split']))
 
     # Save final merged data
     dump(dict(split=split, annotations=annotations), output_file)

@@ -1,11 +1,16 @@
 #!/bin/bash
 
 # Set fixed values inside the script
-config_file="configs/ctrgcn/elderly/eval_j.py"
-pth="work_dirs/ctrgcn/ctrgcn_pyskl_toyota_hrnet/j/best_top1_acc_epoch_16.pth"
+# config_file="configs/ctrgcn/elderly/eval_j.py"
+# pth="work_dirs/ctrgcn/ctrgcn_pyskl_imbalance_merged_etrifull_toyota_hrnet/j/best_top1_acc_epoch_15.pth"
+# output_file="work_dirs/ctrgcn/ctrgcn_pyskl_eval_hrnet/j/test_result_imbalance_etrifull_toyota_hrnet_relabel.pkl"
+
+config_file="configs/msg3d/elderly/eval_b.py"
+pth="work_dirs/msg3d/msg3d_pyskl_etrifull_toyota_hrnet/b/best_top1_acc_epoch_15.pth"
+output_file="work_dirs/msg3d/msg3d_pyskl_etrifull_toyota_hrnet/eval_b/test_result_etrifull_toyota_hrnet_relabel.pkl"
+
 num_gpu=2
 eval_metric="top_k_accuracy"
-output_file="work_dirs/ctrgcn/ctrgcn_pyskl_eval_hrnet/j/test_result.pkl"
 dataset_path="data/elderlychallenge/eval_hrnet.pkl"  # Set your dataset path here
 
 # Print the values of the variables (for verification)
@@ -21,3 +26,4 @@ bash tools/dist_test.sh "$config_file" "$pth" "$num_gpu" --eval "$eval_metric" -
 
 # Execute the Python script with the necessary arguments
 python3 examples/generate_prediction_csv/gen_pred.py --dataset_path "$dataset_path" --result_path "$output_file"
+# python3 examples/generate_prediction_csv/gen_pred_ensemble.py --dataset_path "$dataset_path" --result_path "$output_file" --result2_path "$output_file"
